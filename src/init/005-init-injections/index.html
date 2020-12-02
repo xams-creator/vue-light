@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/vue.js"></script>
+    <script src="/base.js"></script>
+</head>
+<body>
+<div id="app" class="foo" style="color: red">
+    <div class="bar">hello world {{msg}}</div>
+    <hello/>
+</div>
+
+
+<script>
+    Vue.component("hello", {
+        inject: ["foo", "bar"],
+        template: `<div>{{this.foo}} : {{this.bar}}</div>`,
+    });
+
+    vm = new Vue({
+        el: '#app',
+        provide() {
+            return {
+                foo: 'foo'
+            }
+        },
+        data() {
+            return {
+                msg: 'vue-light!',
+            }
+        },
+        mixins: [
+            {
+                provide: {
+                    bar: 'bar'
+                },
+            },
+        ]
+    });
+    vmc = vm.$children[0];
+
+</script>
+
+</body>
+</html>

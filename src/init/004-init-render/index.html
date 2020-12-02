@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/vue.js"></script>
+    <script src="/base.js"></script>
+</head>
+<body>
+<div id="app" class="foo" style="color: red">
+    <div class="bar">hello world {{msg}}</div>
+    <parent/>
+</div>
+
+
+<script>
+    Vue.component("parent", {
+        template: `
+        <div>
+            <child>
+                <!--<p slot="one">one</p>-->
+                <!--<p slot="two">two</p>-->
+                <p>default</p>
+            </child>
+        </div>
+        `,
+    });
+    Vue.component("child", {
+        template: `
+        <div>
+                <h1>内容被分发且重新组合</h1>
+	            <slot>默认分发处</slot>
+                <slot name="two"></slot>
+	            <slot name="one"></slot>
+        </div>
+        `,
+    });
+
+    vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                msg: 'vue-light!'
+            }
+        }
+    })
+</script>
+
+</body>
+</html>

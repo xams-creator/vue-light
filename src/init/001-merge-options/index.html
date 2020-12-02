@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/vue.js"></script>
+    <script src="/base.js"></script>
+</head>
+<body>
+<div id="app" class="foo" style="color: red">
+    <div class="bar">hello world {{msg}}</div>
+</div>
+
+
+<script>
+    vm = new Vue({
+        el: "#app",
+        props: ["foo", "bar"],
+        created() {
+            console.log('vue-instance-created')
+        },
+        mixins: [
+            {
+                data() {
+                    return {
+                        msg: 'vue-light!',
+                        obj: {
+                            a: 1,
+                            b: {
+                                c: 2
+                            }
+                        }
+                    }
+                },
+                created() {
+                    console.log('vue-mixin-created1')
+                },
+            },
+            {
+                data() {
+                    return {
+                        msg: 'vue-light222!',
+                        obj: {
+                            b: 3
+                        }
+                    }
+                },
+                created() {
+                    console.log('vue-mixin-created2')
+                },
+            }
+        ]
+    });
+
+    log("合并后的 $options.data", vm.$data, true);
+    log("合并后的 $options", vm.$options);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/vue.js"></script>
+    <script src="/base.js"></script>
+</head>
+<body>
+<div id="app" class="foo" style="color: red">
+    <div class="bar">hello world {{msg}}</div>
+</div>
+
+
+<script>
+    vm = new Vue({
+        el: '#app',
+        props: {
+            foo: {
+                type: Number,
+                default: "123"
+            },
+        },
+        data() {
+            return {
+                msg: 'vue-light!',
+            }
+        },
+    });
+
+    log("测试props验证", vm.foo)
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/vue.js"></script>
+    <script src="/base.js"></script>
+</head>
+<body>
+<div id="app" class="foo" style="color: red">
+    <div class="bar">hello world {{msg}}</div>
+</div>
+
+
+<script>
+    vm = new Vue({
+        el: "#app",
+        props: ["foo", "bar"],
+        created() {
+            console.log('vue-instance-created')
+        },
+        mixins: [
+            {
+                data() {
+                    return {
+                        msg: 'vue-light!',
+                        obj: {
+                            a: 1,
+                            b: {
+                                c: 2
+                            }
+                        }
+                    }
+                },
+                created() {
+                    console.log('vue-mixin-created1')
+                },
+            },
+            {
+                data() {
+                    return {
+                        msg: 'vue-light222!',
+                        obj: {
+                            b: 3
+                        }
+                    }
+                },
+                created() {
+                    console.log('vue-mixin-created2')
+                },
+            }
+        ]
+    });
+
+    log("_renderProxy in 测试: foo ", 'foo' in vm._renderProxy);
+    log("_renderProxy in 测试: JSON ", 'JSON' in vm._renderProxy);
+    log("_renderProxy in 测试: Set ", 'Set' in vm._renderProxy);
+    log("_renderProxy in 测试: msg ", 'msg' in vm._renderProxy);
+    log("_renderProxy in 测试: c ", 'c' in vm._renderProxy);
+    log("_renderProxy in 测试: String ", 'String' in vm._renderProxy);
+</script>
+
+</body>
+</html>
