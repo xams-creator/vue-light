@@ -4671,6 +4671,8 @@
         hydrating
     ) {
         vm.$el = el;
+
+        // 这里相当于设置一个默认值，当 options 中没有 render 函数时，使用 createEmptyVNode
         if (!vm.$options.render) {
             vm.$options.render = createEmptyVNode;
             {
@@ -4691,10 +4693,14 @@
                 }
             }
         }
+
+        // 调用 beforeMount，参照 初始化逻辑中的内容
         callHook(vm, 'beforeMount');
 
         var updateComponent;
         /* istanbul ignore if */
+
+        // 这里会提供一个更新视图的函数
         if (config.performance && mark) {
             updateComponent = function () {
                 var name = vm._name;
@@ -4714,6 +4720,7 @@
             };
         } else {
             updateComponent = function () {
+                // 这里就在更新视图了
                 vm._update(vm._render(), hydrating);
             };
         }
@@ -4721,9 +4728,12 @@
         // we set this to vm._watcher inside the watcher's constructor
         // since the watcher's initial patch may call $forceUpdate (e.g. inside child
         // component's mounted hook), which relies on vm._watcher being already defined
+
+        // 创建一个用于渲染页面的watcher实例，当这个watcher被new 成功时，因为 lazy 值会为 false  ,因此会直接执行上面的 vm._update 渲染页面
         new Watcher(vm, updateComponent, noop, {
             before: function before() {
                 if (vm._isMounted && !vm._isDestroyed) {
+                    // 当 vue 实例已经挂载 并且没有被销毁，那么当页面更新前，执行 beforeUpdate钩子
                     callHook(vm, 'beforeUpdate');
                 }
             }
@@ -4733,6 +4743,7 @@
         // manually mounted instance, call mounted on self
         // mounted is called for render-created child components in its inserted hook
         if (vm.$vnode == null) {
+            // 修改钩子属性，调用 mounted 事件
             vm._isMounted = true;
             callHook(vm, 'mounted');
         }
@@ -5072,11 +5083,11 @@
      * This is used for both the $watch() api and directives.
      */
     var Watcher = function Watcher(
-        vm,
-        expOrFn,
-        cb,
-        options,
-        isRenderWatcher
+        vm,             // 关联的 vue 实例
+        expOrFn,        // 表达式或者函数
+        cb,             // watcher 的 回调函数，目前还没看到哪里用，看到了在补充 todo
+        options,        // 选项
+        isRenderWatcher // 是否是用于页面渲染的watcher，mountComponent 时会产生一个 watcher , 这个watcher会提供 isRenderWatcher = true 参数
     ) {
         this.vm = vm;
         if (isRenderWatcher) {
@@ -5087,7 +5098,7 @@
         if (options) {
             this.deep = !!options.deep;
             this.user = !!options.user;
-            this.lazy = !!options.lazy;
+            this.lazy = !!options.lazy; // 是否立即执行 this.getter 函数
             this.sync = !!options.sync;
             this.before = options.before;
         } else {
@@ -12786,6 +12797,8 @@
 
         var options = this.$options;
         // resolve template/el and convert to render function
+
+        // 当没有提供 options.render 时，从选择器、提供的template、 el元素本身的outerHtml或者是empty div产生一个模板字符串
         if (!options.render) {
             var template = options.template;
             if (template) {
@@ -12812,11 +12825,12 @@
                 template = getOuterHTML(el);
             }
             if (template) {
-                /* istanbul ignore if */
+                // 性能追踪，参照初始化逻辑里的
                 if (config.performance && mark) {
                     mark('compile');
                 }
 
+                // 这里就是渲染函数最核心的地方，template 在这里被编译成渲染函数
                 var ref = compileToFunctions(template, {
                     outputSourceRange: "development" !== 'production',
                     shouldDecodeNewlines: shouldDecodeNewlines,

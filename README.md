@@ -120,8 +120,16 @@ vue-light
      11.建立vue实例和真实dom元素的关联关系 vm.$mount(vm.$options.el);
      
         详情： 
-        - 1.
-    
+        - 1.根据 el 的值，确定一个真实dom 元素。这个 el 可能是 dom 元素，可能是一个选择器
+        - 2.没有提供 options.render 参数时，会从提供的 options.template、 el元素本身的outerHtml或者是 innerHtml 产生一个模板字符串
+            这个模板字符串将参与挂载步骤中，最重要的逻辑。
+            最后会根据 template 以及编译选项，编译字符串模板产生 页面的渲染函数 render 函数
+        - 3.执行挂载逻辑
+            3.1 当 options 中没有提供render 函数时，使用默认的render函数 createEmptyVNode
+            3.2 调用 beforeMount 生命周期钩子
+            3.3 提供一个用于更新视图的函数 vm._update 
+            3.4 创建一个用于渲染页面的watcher实例，当这个watcher被 new 成功时，因为 lazy 值会为 false  ,因此会直接执行上面的 vm._update 来立即渲染页面
+            3.5 调用 mounted 生命周期钩子,记录标识，表示这个元素已挂载
      
     ```
 

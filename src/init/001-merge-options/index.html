@@ -19,6 +19,9 @@
         created() {
             console.log('vue-instance-created')
         },
+        beforeUpdate(){
+            console.log('before')
+        },
         mixins: [
             {
                 data() {
