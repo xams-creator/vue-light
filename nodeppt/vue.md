@@ -59,16 +59,16 @@ plugins:
 
 
 
-<slide class="bg-gradient-r" :class=" size-40 aligncenter" image="https://cn.bing.com/az/hprichbg/rb/WinterLynx_ZH-CN7158207296_1920x1080.jpg .dark">
+<slide class="bg-gradient-r" :class=" size-50 aligncenter" image="https://cn.bing.com/az/hprichbg/rb/WinterLynx_ZH-CN7158207296_1920x1080.jpg .dark">
 
 ## 主题
 ---
 
 - #### vue实例初始化过程 {.animated.fadeInUp.delay-666}
 - #### vue中有哪些值得一看的内容？	{.animated.fadeInUp.delay-666}
-- #### vue字符串模板编译 {.animated.fadeInUp.delay-666}
+- #### vue字符串模板编译逻辑 {.animated.fadeInUp.delay-666}
 
-<slide class="aligncenter">
+<slide class="size-60 aligncenter">
 
 ## vue实例初始化过程 {.text-landing}
 --- 
@@ -78,7 +78,7 @@ plugins:
 |  [Vue初始化源码分析流程图](https://www.processon.com/diagraming/5f8411a763768906e66a8352) |  -  |   |
 | 简单的示例  |  /src/init/**  |  |
 
-<slide class="aligncenter">
+<slide class="size-80 aligncenter">
 
 ## vue中有哪些值得一看的内容（待完善）? {.text-landing}
 
@@ -94,9 +94,9 @@ plugins:
 | use  |  /src/feature/use  |  vue | vue 插件功能 |
 
 
-<slide class="aligncenter">
+<slide class="size-60 aligncenter">
 
-## vue字符串模板编译 {.text-landing}
+## vue字符串模板编译逻辑 {.text-landing}
 --- 
 
 |      |   代码位置  | 类型 | 备注  |
@@ -109,6 +109,6 @@ plugins:
 
 一行一行剖析源码，持续更新，觉得不错就加个星吧！{.text-intro.animated.fadeInUp.delay-500}
 
-[:fa-github: Github](https://github.com/xams-creator/vue-light){.button.ghost.animated.flipInX.delay-1200}
+[:fa-github: Github](https://github.com/ReactTraining/react-router/blob/master/packages/){.button.ghost.animated.flipInX.delay-1200}
 
 
