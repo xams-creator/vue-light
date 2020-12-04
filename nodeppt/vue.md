@@ -75,7 +75,7 @@ plugins:
 
 |      |   代码位置  |  备注  |
 | :------------: |  :------------: | :------------: |
-|  [Vue初始化源码分析流程图](https://www.processon.com/diagraming/5f8411a763768906e66a8352) |  -  |   |
+|  [Vue初始化源码分析流程图](https://www.processon.com/view/5f8411a763768906e66a8352?fromnew=1) |  -  |   |
 | 简单的示例  |  /src/init/**  |  |
 
 <slide class="size-80 aligncenter">

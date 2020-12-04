@@ -4583,6 +4583,7 @@
     }
 
     function lifecycleMixin(Vue) {
+        // vue 更新页面
         Vue.prototype._update = function (vnode, hydrating) {
             var vm = this;
             var prevEl = vm.$el;
@@ -4591,6 +4592,8 @@
             vm._vnode = vnode;
             // Vue.prototype.__patch__ is injected in entry points
             // based on the rendering backend used.
+
+            // 这里主要判断是否第一次渲染。最终执行 patch 处理
             if (!prevVnode) {
                 // initial render
                 vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */);
@@ -4614,18 +4617,25 @@
             // updated in a parent's updated hook.
         };
 
+        // 强制更新视图
         Vue.prototype.$forceUpdate = function () {
             var vm = this;
+            // 这个 _watcher 是 vue 实例挂载时产生的 render watcher ，这个是不讲武德的更新视图
             if (vm._watcher) {
                 vm._watcher.update();
             }
         };
 
+        // 删除 vue 实例和 页面的关联关系
         Vue.prototype.$destroy = function () {
             var vm = this;
+
+            // 如果已经在销毁中状态，那么退出
             if (vm._isBeingDestroyed) {
                 return
             }
+
+            // 调用 beforeDestroy 钩子，参考初始化逻辑
             callHook(vm, 'beforeDestroy');
             vm._isBeingDestroyed = true;
             // remove self from parent
@@ -4634,6 +4644,8 @@
                 remove(parent.$children, vm);
             }
             // teardown watchers
+
+            // 注销 watcher
             if (vm._watcher) {
                 vm._watcher.teardown();
             }
@@ -4643,6 +4655,8 @@
             }
             // remove reference from data ob
             // frozen object may not have observer.
+
+            // 移除 data._ob__ 的引用
             if (vm._data.__ob__) {
                 vm._data.__ob__.vmCount--;
             }

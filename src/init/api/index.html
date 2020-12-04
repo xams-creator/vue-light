@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试 $set 和 $del </title>
+    <script src="/vue.js"></script>
+    <script src="/base.js"></script>
+</head>
+<body>
+<div id="app" class="foo" style="color: red">
+    <div class="bar">hello world {{msg}} {{obj.a}}</div>
+</div>
+
+
+<script>
+    vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: 'vue-light!',
+                obj: {
+                    a: 1,
+                    b: 2
+                }
+            }
+        },
+    });
+
+    vm.$delete(vm,'msg');   // 不被允许
+    vm.$delete(vm.obj,'a'); // 被允许,操作后会更新页面
+
+    vm.$set(vm,'msg',123); // 被允许，成功修改为123，操作成功后会 notify 更新
+    vm.$set(vm,'msggggg',123); // 不被允许
+
+</script>
+
+</body>
+</html>
