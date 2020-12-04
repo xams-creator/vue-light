@@ -1614,6 +1614,7 @@
 
     /**
      * Options with restrictions
+     * 下面 strats.xxx 的都会在 初始化逻辑，处理合并options中使用，这里可以跳过，参考 mergeField(key) 这一行，完整的列出了合并策略函数列表
      */
     {
         strats.el = strats.propsData = function (parent, child, vm, key) {
@@ -1685,7 +1686,7 @@
     }
 
     /**
-     * Data
+     *  合并 options.data 的策略
      */
     function mergeDataOrFn(
         parentVal,
@@ -1712,6 +1713,7 @@
                 )
             }
         } else {
+            // 如果是 childVal 和 parentVal 是函数，那么就直接执行，返回对象，最后合并两个数据
             return function mergedInstanceDataFn() {
                 // instance merge
                 var instanceData = typeof childVal === 'function'
@@ -1720,6 +1722,7 @@
                 var defaultData = typeof parentVal === 'function'
                     ? parentVal.call(vm, vm)
                     : parentVal;
+
                 if (instanceData) {
                     return mergeData(instanceData, defaultData)
                 } else {
@@ -1758,6 +1761,15 @@
         parentVal,
         childVal
     ) {
+        /**
+         *  1. childVal 不存在
+         *      1.1 直接使用 parentVal
+         *  2. childVal 存在
+         *      2.1 parentVal 存在就  parentVal.concat(child)。
+         *      2.2 parentVal 不存在，如果 childVal 是数组就返回，不是数组就转为数组返回
+         *
+         *  目的是使结果为数组
+         * **/
         var res = childVal
             ? parentVal
                 ? parentVal.concat(childVal)
@@ -1770,6 +1782,12 @@
             : res
     }
 
+    /**
+     *  这一步主要是去除重复函数
+     *  hooks = [alert,AbortController,alert]
+     *  dedupeHooks(hooks)  // [alert,AbortController]
+     *
+     * **/
     function dedupeHooks(hooks) {
         var res = [];
         for (var i = 0; i < hooks.length; i++) {
@@ -1780,6 +1798,10 @@
         return res
     }
 
+    /*
+    *   提供生命周期钩子函数的合并策略
+    *   在mergeOptions 的 mergeField(key)  这一步里，把 options 中 mixins 混入的生命周期钩子合并为数组结构
+    * **/
     LIFECYCLE_HOOKS.forEach(function (hook) {
         strats[hook] = mergeHook;
     });
@@ -1806,6 +1828,7 @@
         }
     }
 
+    // 合并 components,direactives,filters 时的策略
     ASSET_TYPES.forEach(function (type) {
         strats[type + 's'] = mergeAssets;
     });
@@ -1816,6 +1839,7 @@
      * Watchers hashes should not overwrite one
      * another, so we merge them as arrays.
      */
+    // 合并 options.watch 时的策略
     strats.watch = function (
         parentVal,
         childVal,
@@ -1854,9 +1878,7 @@
         return ret
     };
 
-    /**
-     * Other object hashes.
-     */
+    // 合并 options.props,methods,inject,computed 时的策略
     strats.props =
         strats.methods =
             strats.inject =
@@ -1879,6 +1901,8 @@
                     }
                     return ret
                 };
+
+    // 合并 options.provide 时的策略
     strats.provide = mergeDataOrFn;
 
     /**
@@ -2090,6 +2114,35 @@
         }
 
         function mergeField(key) {
+            /*
+            *  这里会获得 vue 预先定义的合并策略函数，如果找不到就使用 defaultStrat
+            *  strats = {
+                    activated: ƒ mergeHook( parentVal, childVal )
+                    beforeCreate: ƒ mergeHook( parentVal, childVal )
+                    beforeDestroy: ƒ mergeHook( parentVal, childVal )
+                    beforeMount: ƒ mergeHook( parentVal, childVal )
+                    beforeUpdate: ƒ mergeHook( parentVal, childVal )
+                    components: ƒ mergeAssets( parentVal, childVal, vm, key )
+                    computed: ƒ ( parentVal, childVal, vm, key )
+                    created: ƒ mergeHook( parentVal, childVal )
+                    data: ƒ ( parentVal, childVal, vm )
+                    deactivated: ƒ mergeHook( parentVal, childVal )
+                    destroyed: ƒ mergeHook( parentVal, childVal )
+                    directives: ƒ mergeAssets( parentVal, childVal, vm, key )
+                    el: ƒ (parent, child, vm, key)
+                    errorCaptured: ƒ mergeHook( parentVal, childVal )
+                    filters: ƒ mergeAssets( parentVal, childVal, vm, key )
+                    inject: ƒ ( parentVal, childVal, vm, key )
+                    methods: ƒ ( parentVal, childVal, vm, key )
+                    mounted: ƒ mergeHook( parentVal, childVal )
+                    props: ƒ ( parentVal, childVal, vm, key )
+                    propsData: ƒ (parent, child, vm, key)
+                    provide: ƒ mergeDataOrFn( parentVal, childVal, vm )
+                    serverPrefetch: ƒ mergeHook( parentVal, childVal )
+                    updated: ƒ mergeHook( parentVal, childVal )
+                    watch: ƒ ( parentVal, childVal, vm, key )
+            *  }
+            * */
             var strat = strats[key] || defaultStrat;
             options[key] = strat(parent[key], child[key], vm, key);
         }
@@ -2418,12 +2471,13 @@
         }
     }
 
+    // 执行一次函数调用，这次执行会被 try catch ，当catch到错误，会执行 config.errorHandler 定义的函数
     function invokeWithErrorHandling(
-        handler,
-        context,
-        args,
-        vm,
-        info
+        handler,    // fn
+        context,    // 执行上下文，修改 this 指向
+        args,       // 参数
+        vm,         // vUe 实例
+        info        // log 字符串
     ) {
         var res;
         try {

@@ -63,7 +63,25 @@ vue-light
      
         详情： 
         - 1.如果 options 中存在 parentListeners，那么将更新|合并这些listeners
-        - 2.listeners和 v-on 存在关联关系
+        
+        相关api 
+         使用到了订阅-发布者模式
+          1. vm.$once(event,callback)
+             vm.$once('foo',()=>{console.log('foo')}) // vm._events = {foo:[fn]} 
+           当vm.$emit('foo') 执行后会执行回调，执行后清掉此 函数
+        
+          2. vm.$on(event,callback)
+            向 events 里提供一个事件，$emit后不会清除    
+        
+          3.vm.$emit(event,args)
+            触发 _events 上的事件
+          4.vm.$off 
+            移除自定义事件监听器。
+            如果没有提供参数，则移除所有的事件监听器；
+            如果只提供了事件，则移除该事件所有的监听器；
+            如果同时提供了事件与回调，则只移除这个回调的监听器。
+        https://cn.vuejs.org/v2/api/#%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95-%E4%BA%8B%E4%BB%B6
+          
       
      5.初始化渲染函数
      
