@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/vue.js"></script>
+    <script src="/base.js"></script>
+</head>
+<body>
+<div id="app" class="foo" style="color: red">
+    <div class="bar">hello world {{msg}}</div>
+</div>
+
+
+<script>
+    vm = new Vue({
+        el: "#app",
+        props: ["foo", "bar"],
+        data() {
+            return {
+                msg: 'vue-light222!',
+                obj: {
+                    b: 3
+                }
+            }
+        },
+    });
+
+    vm.$once('foo', (val) => {
+        console.log(`值 + 1 : ${val + 1}`);
+    });
+
+    vm.$on('foo', (val) => {
+        console.log(`值 - 1 : ${val - 1}`);
+    });
+
+    vm.$emit('foo', 1);
+    log('打印 events1', vm._events);
+
+    vm.$off();
+    log('打印 events2', vm._events);
+
+
+</script>
+
+</body>
+</html>
