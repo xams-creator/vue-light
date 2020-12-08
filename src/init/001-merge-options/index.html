@@ -15,11 +15,15 @@
 <script>
     vm = new Vue({
         el: "#app",
-        props: ["foo", "bar"],
+        // props: ["foo", "bar"],
+        props: {
+            "foo": String,
+            "bar": Number
+        },
         created() {
             console.log('vue-instance-created')
         },
-        beforeUpdate(){
+        beforeUpdate() {
             console.log('before')
         },
         mixins: [

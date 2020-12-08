@@ -955,9 +955,9 @@
         };
 
         /*
-      *  警告函数，控制台打印，可跳过
-      *
-      * **/
+          *  警告函数，控制台打印，可跳过
+          *
+          * **/
         tip = function (msg, vm) {
             if (hasConsole && (!config.silent)) {
                 console.warn("[Vue tip]: " + msg + (
@@ -1052,7 +1052,7 @@
     var uid = 0;
 
     /**
-     *  Dep 实例相当于是 subscribers(Watcher实例) 的主题类
+     *  Dep 实例相当于是 subscribers(Watcher实例) 的主题类，1个响应式属性对应1个dep实例，
      *  1个 dep 实例可能包含多个 watcher 实例， 1个 watcher 又可能存在多个 dep 实例
      *
      *  1.dep实例 管理 subscribers
@@ -1438,7 +1438,7 @@
         customSetter,// set钩子方法,当 值被修改后，会调用一次此方法，一般多用于打印 log ... 如 listeners,direactives
         shallow // 是否浅层处理 ,选择浅层处理，如果新值是对象，那么不会 observe 。
     ) {
-        // 为每个 key 绑定一个主题/依赖 ，用于管理 key 被修改后需要触发的事件
+            // 为每个 key 绑定一个主题/依赖 ，用于管理 key 被修改后需要触发的事件
         var dep = new Dep();
 
         // 获取这个 key 的属性修饰对象, 也就是  Object.defineProperty(obj,key,descriptor) 的 descriptor 内容
@@ -12898,6 +12898,7 @@
         el,
         hydrating
     ) {
+        // 产生一个要被挂载的元素
         el = el && query(el);
 
         /* 如果将挂载的元素是 body 或者 documentElement ，那就警告 */
@@ -12951,7 +12952,7 @@
                     delimiters: options.delimiters,
                     comments: options.comments
                 }, this);
-                var render = ref.render;
+                var render = ref.render;    // 根据模板生成的渲染函数。这个函数类似于 function(){with(vm){_c('div','hello')}}
                 var staticRenderFns = ref.staticRenderFns;
                 options.render = render;
                 options.staticRenderFns = staticRenderFns;
@@ -12963,12 +12964,12 @@
                 }
             }
         }
+        // 调用真正的挂载处理函数
         return mount.call(this, el, hydrating)
     };
 
     /**
-     * Get outerHTML of elements, taking care
-     * of SVG elements in IE as well.
+     * 根据提供的元素，获取一个html字符串,用于后续的模板编译
      */
     function getOuterHTML(el) {
         if (el.outerHTML) {

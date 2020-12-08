@@ -37,25 +37,24 @@ plugins:
 
 ## 选择哪种版本的开源代码? {.text-landing}
 ---
-
-
+[:fa-github: Github](https://github.com/vuejs/vue){.button.ghost.animated.flipInX.delay-1200}
 |      |   能否看到目录结构  | 能否直观看到全部源码  |
 | :------------: |  :------------: | :------------: |
-| 压缩前源码  |  √  | ×  |
-| 压缩后源码  |  ×  | √ |
+| 合并前源码  |  √  | ×  |
+| 合并后源码  |  ×  | √ |
 
 
 <slide class="aligncenter">
 
 ## 如何去读源码? {.text-landing}
+--- 
 
-<div style='display: none'>
-- #### 1.通过官方文档了解框架基础概念 {.animated.fadeInUp.delay-666}
-- #### 2.提出问题	{.animated.fadeInUp.delay-666}
-- #### 3.阅读源码 {.animated.fadeInUp.delay-666}
-- #### 4.整理源码逻辑到文档 {.animated.fadeInUp.delay-666}
-- #### 5.重复 2 - 4 步 {.animated.fadeInUp.delay-666}
-</div>
+- #### 通过官方文档了解框架基础概念 {.animated.fadeInUp.delay-666}
+- #### 提出问题	{.animated.fadeInUp.delay-666}
+- #### 阅读源码 {.animated.fadeInUp.delay-666}
+- #### 整理源码逻辑到文档 {.animated.fadeInUp.delay-666}
+- #### 重复 2 - 4 步 {.animated.fadeInUp.delay-666}
+
 
 
 
