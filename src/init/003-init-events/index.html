@@ -34,11 +34,15 @@
         console.log(`值 - 1 : ${val - 1}`);
     });
 
-    vm.$emit('foo', 1);
-    log('打印 events1', vm._events);
+    vm.$on(['foo', 'bar'], () => {
+        console.log(`值 * 1 : ${val * 1}`);
+    })
 
-    vm.$off();
-    log('打印 events2', vm._events);
+    // vm.$emit('foo', 1);
+    // log('打印 events1', vm._events);
+    //
+    // vm.$off();
+    // log('打印 events2', vm._events);
 
 
 </script>

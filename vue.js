@@ -1951,17 +1951,23 @@
      *  我们知道 props 有两种参数格式 ， Array | {[index:string]:object}
      *  vue 会把 数组语法 标准化为 对象语法
      *
+     *
      */
     function normalizeProps(options, vm) {
         var props = options.props;
+
+        // 如果 props 不存在，那就退出
         if (!props) {
             return
         }
+
+        // 把简单数组语法标准化为对象语法
         var res = {};
         var i, val, name;
         if (Array.isArray(props)) {
             i = props.length;
             while (i--) {
+                // 假定提供的 props = ['foo','bar'] ,那这里就会通过循环，简单处理为对象 {foo:{type:null},bar:{type:null}}
                 val = props[i];
                 if (typeof val === 'string') {
                     name = camelize(val);
@@ -1971,9 +1977,13 @@
                 }
             }
         } else if (isPlainObject(props)) {
+            // 如果 props 为对象， {foo:String,bar:{type: Number,default: 0}}
             for (var key in props) {
                 val = props[key];
                 name = camelize(key);
+
+                // 这里会通过循环，处理数据成为对象结构。如果值是对象结构，直接赋值。值不是对象，就处理为对象并赋值
+                // {foo:{type:String},bar:{type:Number.default:0}}
                 res[name] = isPlainObject(val)
                     ? val
                     : {type: val};
@@ -1995,6 +2005,8 @@
      *  vue 会把 数组语法 标准化为 对象语法
      *
      *  https://cn.vuejs.org/v2/api/#provide-inject
+     *
+     *  下面的逻辑，完全可以参考 normalizeProps 这一步
      */
     function normalizeInject(options, vm) {
         var inject = options.inject;
@@ -2851,11 +2863,14 @@
         }
     });
 
+    // 包装一个可以执行函数或函数列表的函数，当执行的函数出现错误时，会被 try catch 并且会执行全局 errorHandler
     function createFnInvoker(fns, vm) {
         function invoker() {
             var arguments$1 = arguments;
 
             var fns = invoker.fns;
+
+            // 如果是数组，循环执行，如果不是，直接当函数执行
             if (Array.isArray(fns)) {
                 var cloned = fns.slice();
                 for (var i = 0; i < cloned.length; i++) {
@@ -2872,17 +2887,17 @@
     }
 
     function updateListeners(
-        on,
-        oldOn,
-        add,
-        remove$$1,
-        createOnceHandler,
+        on,                 // listenres : {event: [fn1,fn2,fn...]}
+        oldOn,              // listenres : {event: [fn1,fn2,fn...]}
+        add,                // add 函数，向 _events 中添加一个事件
+        remove$$1,          // 从 events 中移除一个事件
+        createOnceHandler,  // 包装一个执行一次就丢弃的函数
         vm
     ) {
         var name, def$$1, cur, old, event;
-        for (name in on) {
-            def$$1 = cur = on[name];
-            old = oldOn[name];
+        for (name in on) {      // name 为 event
+            def$$1 = cur = on[name];    // 这里为 [fn1,fn2,fn...]
+            old = oldOn[name];          // 这里为 [fn1,fn2,fn...]
             event = normalizeEvent(name);
             if (isUndef(cur)) {
                 warn(
@@ -2890,6 +2905,8 @@
                     vm
                 );
             } else if (isUndef(old)) {
+
+                // 这里确定需要被包装的函数, cur 被处理后会变成 [fn1,fn2]
                 if (isUndef(cur.fns)) {
                     cur = on[name] = createFnInvoker(cur, vm);
                 }
@@ -4472,16 +4489,20 @@
         }
     }
 
+    // target 可能是 vue 实例也可能是 vueComponent
     var target;
 
+    // 向从vue._events中添加一个事件  vm._events = {event: [fn1,fn2,...fnx]}
     function add(event, fn) {
         target.$on(event, fn);
     }
 
+    // 从vue._events中移除某个事件
     function remove$1(event, fn) {
         target.$off(event, fn);
     }
 
+    // 包装 event 和 将执行函数。执行一次后移除函数
     function createOnceHandler(event, fn) {
         var _target = target;
         return function onceHandler() {
@@ -4504,6 +4525,15 @@
 
     function eventsMixin(Vue) {
         var hookRE = /^hook:/;
+
+        /**
+         *  向 vue 实例上写入 events , 最终结果 vm._events = {event: [fn]} ，如果 event 是数组，递归
+         *
+         *  // 支持字符串写法和数组写法
+         *  vm.$on(event1,fn) // vm._events = {event1: [fn]}
+         *  vm.$on([event1,event2],fn) // vm._events = {event1: [fn],event2: [fn]}
+         *
+         * */
         Vue.prototype.$on = function (event, fn) {
             var vm = this;
             if (Array.isArray(event)) {
@@ -4521,6 +4551,9 @@
             return vm
         };
 
+        /*
+        *   确保事件只会被执行一次，执行之后 调用 vm.$off 删除此事件
+        * **/
         Vue.prototype.$once = function (event, fn) {
             var vm = this;
 
@@ -4534,6 +4567,12 @@
             return vm
         };
 
+        /*
+        *   1.如果不提供参数，那就全部清空
+        *   2.如果提供了 event，那就把此 event 的事件清空
+        *   3.如果提供了 event + fn , 那就精确删除
+        *
+        * **/
         Vue.prototype.$off = function (event, fn) {
             var vm = this;
             // all
@@ -4570,6 +4609,9 @@
             return vm
         };
 
+        /*
+        *  触发事件，此事件如果出现异常，就会被 errorHandler 捕获
+        * **/
         Vue.prototype.$emit = function (event) {
             var vm = this;
             {
@@ -5807,6 +5849,9 @@
         };
     }
 
+    /**
+     *  初始化组件options
+     */
     function initInternalComponent(vm, options) {
         var opts = vm.$options = Object.create(vm.constructor.options);
         // doing this because it's faster than dynamic enumeration.

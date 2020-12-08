@@ -75,6 +75,8 @@ plugins:
 
 |      |   代码位置  |  备注  |
 | :------------: |  :------------: | :------------: |
+| [官方HelloWorld](https://cn.vuejs.org/v2/guide/index.html)  |  -  |  |
+| [生命周期图示](https://cn.vuejs.org/v2/guide/instance.html#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%9B%BE%E7%A4%BA) |  - | | 
 |  [Vue初始化源码分析流程图](https://www.processon.com/view/5f8411a763768906e66a8352?fromnew=1) |  -  |   |
 | 简单的示例  |  /src/init/**  |  |
 

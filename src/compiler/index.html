@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/vue.js"></script>
+</head>
+<body>
+<div id="app" class="foo" style="color: red">
+  <div class="bar">hello world {{msg}}</div>
+</div>
+
+<script>
+    window.vue = new Vue({
+        el: '#app',
+        data: {
+            msg: 'vue'
+        }
+    });
+
+    /**
+     *
+     *  `
+     *
+     *
+     *  `
+     *  1. 获取即将参与编译的模板html字符串。从选择器、提供的template、 el元素本身的outerHtml或者是empty div产生，最终结果如下：
+     *  `
+     *    <div id="app" class="foo" style="color: red">
+     *        <div class="bar">hello world {{msg}}}</div>
+     *    </div>
+     *
+     *  `
+     *   2.通过字符串分段处理算法解析字符串模板   //  generateCodeFrame
+     *   <div
+     *   id="app"
+     *   class="foo"
+     *   style="color:red"
+     *   >
+     *   div1 的 startTag已关闭，检查 div1 的endTag
+     *   发现又打开了新div2 <div
+     *   >
+     *   div2 的 startTag已关闭，检查 div2 的endTag
+     *   发现又存在新的元素 textContent
+     *   hello world
+     *   发现 {{msg}}
+     *   发现</
+     *   即将关闭一个标签
+     *   发现div>
+     *   关闭div2
+     *   发现</
+     *   即将关闭一个标签
+     *   发现div>
+     *   关闭div1
+     *
+     *   3.解析字符串模板为 ast 抽象语法树 (一切皆为对象，使用对象描述dom字符串) //  var code = generate(ast, options);
+     *
+     *   顶级节点标签为 div, 在这段元素中，它无父节点对象，参数有3个，它有一个子节点
+     *   `
+     *      {
+     *          tag: 'div',
+     *          parent: null,
+     *          attrs: [
+     *              {name: 'id',value: 'app'}
+     *              {name: 'class',value: 'foo'}
+     *              {name: 'style',value: {color:'red'}}
+     *          ],
+     *          children:[
+     *              {
+     *                  tag: 'div',
+     *                  parent: {...}
+     *                  attrs: [
+     *                      {name: 'class',value: 'bar'}
+     *                  ]
+     *                  children:[
+     *                      {
+     *                          tag: 'text',
+     *                          value: 'hello world {{msg}}'
+     *                          expression: '"hello world "+_s(msg)'
+     *                          tokens: [
+     *                              "hello world"
+     *                              {
+     *                                  "@binding": "msg"
+     *                              }
+     *                          ]
+     *
+     *                      }
+     *                  ]
+     *              }
+     *          ]
+     *      }
+     *   `
+     *  4.根据 ast 对象，生成vue语法的 渲染页面的js代码
+     *  `
+     *      _c('div',{staticClass:"foo",staticStyle:{"color":"red"},attrs:{"id":"app"}},[_c('div',{staticClass:"bar"},[_v("hello world "+_s(msg))])])
+     *
+     *  `
+     *  5.包装代码为真实函数
+     *
+     *  `
+     *      new Function(
+     *          `
+     *              with(this){ // this 为 vm.$data，此时可以去mdn看 with 语法   with({a:1}){console.log(a)}  // 1
+     *                   return  _c('div',{staticClass:"foo",staticStyle:{"color":"red"},attrs:{"id":"app"}},[_c('div',{staticClass:"bar"},[_v("hello world "+_s(msg))])])
+     *              }
+     *          `
+     *      )
+     *
+     *  `
+     *
+     *  6.生成虚拟dom
+     *   `
+     *      {
+     *          tag: 'div',
+     *          data: {
+     *              id: 'app',
+     *              class: 'foo',
+     *              style: {color:'red'}},
+     *          },
+     *          key: undefined, // 在 vnode相关源码中可见
+     *          text: undefined
+     *          children:[
+     *              ...
+     *              ...
+     *              ...
+     *          ]
+     *      }
+     *   `
+     *  7.生成真实dom
+     *  <div id="app" class="foo" style="color: red">
+     *        <div class="bar">hello world vue</div>
+     *  </div>
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     * ***/
+</script>
+
+
+</body>
+</html>
