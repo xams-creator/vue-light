@@ -2831,6 +2831,9 @@
             }
         };
 
+        // 当使用 key in new Proxy(target) 时,会触发 hasHandler
+        // 当使用 proxyobj.key 时触发 getHandler
+        // 本质上是做操作拦截以及自定义逻辑
         initProxy = function initProxy(vm) {
             if (hasProxy) {
                 // determine which proxy handler to use
@@ -5796,6 +5799,7 @@
             return this._props
         };
         {
+            // 对于 $data，$props 对象本身来说，都应该是无法被修改的，因此重新定义 set 函数
             dataDef.set = function () {
                 warn(
                     'Avoid replacing instance root $data. ' +
@@ -5824,7 +5828,11 @@
             }
             options = options || {};
             options.user = true;
+
+            // 创建 非渲染watcher，
             var watcher = new Watcher(vm, expOrFn, cb, options);
+
+            // immediate：是否立即执行回调
             if (options.immediate) {
                 try {
                     cb.call(vm, watcher.value);
@@ -5832,6 +5840,14 @@
                     handleError(error, vm, ("callback for immediate watcher \"" + (watcher.expression) + "\""));
                 }
             }
+            /*
+            *  退订函数
+            *  如果此watcher是可用的
+            *  1.执行后会从 vue实例的 watcher列表 vm._watchers 中移除此watcher
+            *  2.会从关联的 dep 实例中的watcher列表移除此watcher
+            *  3.设置此watcher为不可用状态
+            *
+            * */
             return function unwatchFn() {
                 watcher.teardown();
             }
@@ -5846,9 +5862,10 @@
     function initMixin(Vue) {
         Vue.prototype._init = function (options) {
             var vm = this;
-            // a uid
+            // 设置 vue 实例 id 自增
             vm._uid = uid$3++;
 
+            // 使用浏览器api performance 记录执行性能
             var startTag, endTag;
             /* istanbul ignore if */
             if (config.performance && mark) {
@@ -5857,15 +5874,17 @@
                 mark(startTag);
             }
 
-            // a flag to avoid this being observed
+            // 标记当前实例为 vue 实例，防止实例本身被响应式处理
             vm._isVue = true;
-            // merge options
+
+            // 处理组件options合并逻辑
             if (options && options._isComponent) {
                 // optimize internal component instantiation
                 // since dynamic options merging is pretty slow, and none of the
                 // internal component options needs special treatment.
                 initInternalComponent(vm, options);
             } else {
+                // 合并输入的 options 对象和 全局options 对象
                 vm.$options = mergeOptions(
                     resolveConstructorOptions(vm.constructor),
                     options || {},
@@ -5874,19 +5893,37 @@
             }
             /* istanbul ignore else */
             {
+                // 初始化渲染时代理对象（针对数据访问/判断做拦截）
                 initProxy(vm);
             }
             // expose real self
             vm._self = vm;
+
+            // 初始化生命周期以及 vue 实例基础相关参数
             initLifecycle(vm);
+
+            // 初始化 vue实例订阅-发布的event channel ，_events = {}
             initEvents(vm);
+
+            // 初始化渲染相关事件，解析插槽，提供渲染相关函数等
             initRender(vm);
+
+            // 执行生命周期函数
             callHook(vm, 'beforeCreate');
+
+            // 初始化属性注入相关内容
             initInjections(vm); // resolve injections before data/props
+
+            // 主要以递归的形式，定义数据从普通数据转为响应式数据
             initState(vm);
+
+            // 把提供的 provide 属性转为对象，写入当前实例，用于子实例进行 属性 inject
             initProvide(vm); // resolve provide after data/props
+
+            // 执行生命周期函数
             callHook(vm, 'created');
 
+            // 使用浏览器api performance 记录执行性能
             /* istanbul ignore if */
             if (config.performance && mark) {
                 vm._name = formatComponentName(vm, false);
@@ -5923,6 +5960,7 @@
         }
     }
 
+    // 从构造函数上获取 定义的全局 options
     function resolveConstructorOptions(Ctor) {
         var options = Ctor.options;
         if (Ctor.super) {
@@ -5962,22 +6000,43 @@
         return modified
     }
 
+    // vue 的构造函数
     function Vue(options) {
+        // 需要通过 new 构造出来
         if (!(this instanceof Vue)
         ) {
             warn('Vue is a constructor and should be called with the `new` keyword');
         }
+        // 执行初始化逻辑
         this._init(options);
     }
 
+    // 为 Vue 原型链定义初始化方法
     initMixin(Vue);
+
+    /*
+    *   1.使用 Object.defineProperty 定义 vue的 $data,$props 等属性
+    *   2.设置 $set,$delete,$watch
+    * **/
     stateMixin(Vue);
+
+    /*
+    *   为 Vue 原型链定义 订阅-发布相关事件
+    *   vm.$on      订阅事件
+    *   vm.$off     移除事件
+    *   vm.$emit    发布事件
+    *   vm.$once    订阅事件一次，执行后会被移除
+  * **/
     eventsMixin(Vue);
+
+    // 定义 更新页面和销毁函数
     lifecycleMixin(Vue);
+
+    // 定义渲染函数和 触发异步更新队列使用的函数
     renderMixin(Vue);
 
     /*  */
-
+    // 初始化 vue 插件函数， Vue.use(antd) 等都会执行这里，执行完成后会加入 _installedPlugins
     function initUse(Vue) {
         Vue.use = function (plugin) {
             var installedPlugins = (this._installedPlugins || (this._installedPlugins = []));
