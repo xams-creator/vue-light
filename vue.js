@@ -700,7 +700,8 @@
          * Perform updates asynchronously. Intended to be used by Vue Test Utils
          * This will significantly reduce performance if set to false.
          *
-         * 在 dep 实例关联的字段值被修改后，notify watchers 执行 update 时，是否需要根据 watcher id 排序执行
+         * 在 reactive field 被修改后，会触发 dep 实例的 notify，notify 函数将执行 watchers 的 update 时，将根据 watcher id 排序执行
+         * 这里就是watchers是否排序执行标识
          */
         async: true,
 
@@ -1052,16 +1053,15 @@
     var uid = 0;
 
     /**
-     *  Dep 实例相当于是 subscribers(Watcher实例) 的主题类，1个响应式属性对应1个dep实例，
+     *  Dep 实例相当于是 subscribers(Watcher实例) 的主题类，1个响应式属性 reactive field 对应1个dep实例，
      *  1个 dep 实例可能包含多个 watcher 实例， 1个 watcher 又可能存在多个 dep 实例
      *
      *  1.dep实例 管理 subscribers
-     *  2.执行更新通知事件
-     *
+     *  2.field值发生改变后，执行通知事件
      *
      *  详情：
-     *      观察者模式： /src/example/design-patterns/observer,
-     *      发布订阅模式： /src/example/design-patterns/pub-sub
+     *      观察者模式： /src/design-patterns/observer,
+     *      发布订阅模式： /src/design-patterns/pub-sub
      *
      */
     var Dep = function Dep() {
@@ -1230,7 +1230,7 @@
 
     /*
    *
-   * 通过重写数组原型方法的方式，实现操作数组数据后，页面也会同步变更的效果
+   * 通过重写/拦截数组原型方法的方式，实现操作数组数据后，页面也会同步变更的效果
    *
   *
   *     1.获取Array原型链
@@ -1292,11 +1292,11 @@
                     inserted = args.slice(2);
                     break
             }
-            // 最终结果会被 observe ，然后 触发 notify -> watcher.update() -> 更新视图
             if (inserted) {
+                // 使新数据变为响应式数据
                 ob.observeArray(inserted);
             }
-            // notify change
+            // 触发 notify -> watcher.update() -> 更新视图
             ob.dep.notify();
             return result
         });
@@ -1325,7 +1325,7 @@
      *  观察者类
      *  1.存储被观察的值
      *  2.为数组数据绑定拦截的数组方法
-     *  3.把值变为可观察数据
+     *  3.把值变为响应式数据
      *      3.1 重写字段 get set
      *      3.2 当字段值被修改后，发布 notify 通知视图更新
      */
@@ -1362,7 +1362,7 @@
     };
 
     /**
-     *  使 数组 值变为响应式数据
+     *  使数组值变为响应式数据
      */
     Observer.prototype.observeArray = function observeArray(items) {
         for (var i = 0, l = items.length; i < l; i++) {
@@ -1465,7 +1465,10 @@
                 // 确定返回的值
                 var value = getter ? getter.call(obj) : val;
 
-                // 如果当前 Watchers 栈中存在实例，把当前对象 dep 放入 watcher 中
+                // 当关联的 watcher 实例被创建出来后，加入watchers处理栈 pushTarget(watcher);
+                // 触发执行一次 get，会让当前字段的 dep 和 watcher 建立关联
+                // 建立完成后，清除 watchers处理栈栈顶的watcher实例。popTarget();
+                // 此时，当前依赖已收集完毕，清除栈顶watcher，下面部分代码不会被刚才的watcher执行了。也就是说不会影响效率
                 if (Dep.target) {
                     dep.depend();
                     if (childOb) {
@@ -1503,6 +1506,13 @@
                 }
 
                 // 如果 新value 是对象，并且需要响应式处理，那么就 observe 此值，最终会返回 observer 实例
+                /*
+                *  这里的代码解决了新值为对象的场景
+                *
+                *  data = {a:1,b:{c:1}}
+                *  data.b.c = 2 // 会触发相关逻辑
+                *  data.b = {c:2}   // 破坏了原有逻辑，因此，当新值为对象时需要重新 observe
+                * */
                 childOb = !shallow && observe(newVal);
 
                 // 通知值变更
@@ -1591,7 +1601,8 @@
     }
 
     /**
-     *  根据提供的 value ， 递归的把 主题 加入当前 Watcher 实例
+     *  根据提供的 value ， 递归的把 依赖 加入当前 Watcher 实例
+     *  递归收集依赖
      */
     function dependArray(value) {
         for (var e = (void 0), i = 0, l = value.length; i < l; i++) {
@@ -1614,7 +1625,28 @@
 
     /**
      * Options with restrictions
-     * 下面 strats.xxx 的都会在 初始化逻辑，处理合并options中使用，这里可以跳过，参考 mergeField(key) 这一行，完整的列出了合并策略函数列表
+     * 下面 strats.xxx 的都会在 初始化实例的处理合并options中 这一步使用，这里可以跳过，参考 mergeField(key) 这一行，完整的列出了合并策略函数列表
+     *
+     *  主要是定义 options 中的属性如何做合并
+     *  data 合并策略，生命周期合并策略，自定义指令合并策略等
+     *
+     *  options = {
+     *      created:function(){console.log('vue')}
+     *      mixins:[
+     *          {
+     *              created:function(){console.log('mixin1')}
+     *          }
+     *      ]
+     *  }
+     *  以hooks合并举例，
+     *  最终会把生命周期钩子合并成
+     *  options:{
+     *      created:[
+     *          function(){console.log('mixin1')},
+     *          function(){console.log('vue')}
+     *      ]
+     *  }
+     *
      */
     {
         strats.el = strats.propsData = function (parent, child, vm, key) {
@@ -1636,7 +1668,7 @@
      *
      *      data: function(){
      *          return {
-     *              foo: 123
+     *              a: 123
      *          }
      *      }
      *      mixins:[
@@ -1651,6 +1683,13 @@
      *
      *      ]
      *  })
+     *
+     *  最终会合并成：
+     *  options:{
+     *      data: function mergeDataInstanceFn(){
+     *          return {a:123,foo:223,bar:'hello'} // 对象合并后的值
+     *      }
+     *  }
      *
      *
      */
@@ -1756,6 +1795,9 @@
 
     /**
      * Hooks and props are merged as arrays.
+     *
+     * 参考 config.optionMergeStrategies; 这一行内容下面的 合并生命周期钩子例子
+     *
      */
     function mergeHook(
         parentVal,
@@ -1801,6 +1843,8 @@
     /*
     *   提供生命周期钩子函数的合并策略
     *   在mergeOptions 的 mergeField(key)  这一步里，把 options 中 mixins 混入的生命周期钩子合并为数组结构
+    *
+    *   参考 config.optionMergeStrategies; 这一行内容下面的 合并生命周期钩子例子
     * **/
     LIFECYCLE_HOOKS.forEach(function (hook) {
         strats[hook] = mergeHook;
@@ -1950,7 +1994,6 @@
      *  处理构造 vue 实例时，用户提供的 options.props （标准化 options.props）
      *  我们知道 props 有两种参数格式 ， Array | {[index:string]:object}
      *  vue 会把 数组语法 标准化为 对象语法
-     *
      *
      */
     function normalizeProps(options, vm) {
@@ -2539,7 +2582,7 @@
 
     /*
     *   是否使用微任务，在 vue 中有两种执行任务的方式，分别是微任务和宏任务。
-    *   在现在这个版本中只使用微任务，因为当微任务和宏任务同时使用时会产生奇怪的问题
+    *   在现在这个版本中使用微任务，因为当微任务和宏任务同时使用时会产生奇怪的问题
     *   1.微任务:  在vue2.5中使用的是 Promise
     *
     *
@@ -2658,6 +2701,7 @@
             }
         });
         if (!pending) {
+            // 执行任务
             pending = true;
             timerFunc();
         }
@@ -2913,6 +2957,8 @@
                 if (isTrue(event.once)) {
                     cur = on[name] = createOnceHandler(event.name, cur, event.capture);
                 }
+
+                // 最终会把订阅的事件记录当 vue 或 vueComponentd 的 _events 对象上
                 add(event.name, cur, event.capture, event.passive, event.params);
             } else if (cur !== old) {
                 old.fns = cur;
@@ -4782,7 +4828,7 @@
     ) {
         vm.$el = el;
 
-        // 这里相当于设置一个默认值，当 options 中没有 render 函数时，使用 createEmptyVNode
+        // 这里相当于设置一个默认值，当 options 中没有 render 函数时，使用 createEmptyVNode ，在无法获得有效 template 时，render不存在
         if (!vm.$options.render) {
             vm.$options.render = createEmptyVNode;
             {
@@ -4839,7 +4885,8 @@
         // since the watcher's initial patch may call $forceUpdate (e.g. inside child
         // component's mounted hook), which relies on vm._watcher being already defined
 
-        // 创建一个用于渲染页面的watcher实例，当这个watcher被new 成功时，因为 lazy 值会为 false  ,因此会直接执行上面的 vm._update 渲染页面
+        // 创建一个用于渲染页面的watcher实例，当这个watcher被new 成功时，因为此时 lazy 值默认会为 false  ,
+        // 因此会直接执行上面的 vm._update 渲染页面
         new Watcher(vm, updateComponent, noop, {
             before: function before() {
                 if (vm._isMounted && !vm._isDestroyed) {
@@ -5247,10 +5294,12 @@
      * Evaluate the getter, and re-collect dependencies.
      */
     Watcher.prototype.get = function get() {
+        // 把 当前 watcher 实例加入 watcher 栈中,用于后续的依赖收集。
         pushTarget(this);
         var value;
         var vm = this.vm;
         try {
+            // 最终触发了 defineReactive中重写的 get 方法，开始执行依赖收集建立 field -> dep -> watcher 关联
             value = this.getter.call(vm, vm);
         } catch (e) {
             if (this.user) {
@@ -5264,6 +5313,7 @@
             if (this.deep) {
                 traverse(value);
             }
+            // 收集完成后把watcher从栈移除
             popTarget();
             this.cleanupDeps();
         }
@@ -5617,6 +5667,7 @@
         }
     }
 
+    // 对于 computed 计算函数来说，只应该有 get 操作，
     function defineComputed(
         target,
         key,
@@ -5646,6 +5697,7 @@
         }
         Object.defineProperty(target, key, sharedPropertyDefinition);
     }
+
 
     function createComputedGetter(key) {
         return function computedGetter() {
@@ -9999,6 +10051,8 @@
         hydrating
     ) {
         el = el && inBrowser ? query(el) : undefined;
+
+        // 真正的挂载逻辑
         return mountComponent(this, el, hydrating)
     };
 
@@ -12636,6 +12690,7 @@
         return res.join('\n')
     }
 
+    // 参照最上面的 repeat 函数
     function repeat$1(str, n) {
         var result = '';
         if (n > 0) {
@@ -12655,7 +12710,7 @@
 
     /*  */
 
-
+    // 根据代码生成一个函数。 createFunction('return 1*999')() // 999
     function createFunction(code, errors) {
         try {
             return new Function(code)
@@ -12852,14 +12907,17 @@
         template,
         options
     ) {
+        // 根据字符串模板和解析选项生成 ast，参照 src/compiler/ast.png
         var ast = parse(template.trim(), options);
         if (options.optimize !== false) {
             optimize(ast, options);
         }
+
+        // 根据 ast 结果生成结果对象 ，参照 src/compiler/code.png
         var code = generate(ast, options);
         return {
             ast: ast,
-            render: code.render,
+            render: code.render,    // 根据 ast 结果生成渲染函数 ，参照 src/compiler/render.png
             staticRenderFns: code.staticRenderFns
         }
     });
@@ -12888,6 +12946,8 @@
 
     /*  */
 
+
+    // 根据 id 获取一个innerHtml，并缓存结果。当下次使用同样的id查询元素时，直接返回缓存的内容
     var idToTemplate = cached(function (id) {
         var el = query(id);
         return el && el.innerHTML
@@ -12918,6 +12978,7 @@
             if (template) {
                 if (typeof template === 'string') {
                     if (template.charAt(0) === '#') {
+                        // 根据id获取模板
                         template = idToTemplate(template);
                         /* istanbul ignore if */
                         if (!template) {
@@ -12928,6 +12989,7 @@
                         }
                     }
                 } else if (template.nodeType) {
+                    // 如果是 dom ，直接返回 innerHtml
                     template = template.innerHTML;
                 } else {
                     {
@@ -12938,6 +13000,9 @@
             } else if (el) {
                 template = getOuterHTML(el);
             }
+
+
+            // 如果模板存在，就去编译模板
             if (template) {
                 // 性能追踪，参照初始化逻辑里的
                 if (config.performance && mark) {
@@ -12969,7 +13034,7 @@
     };
 
     /**
-     * 根据提供的元素，获取一个html字符串,用于后续的模板编译
+     * 根据提供的 dom，获取一个html字符串,用于后续的模板编译
      */
     function getOuterHTML(el) {
         if (el.outerHTML) {
