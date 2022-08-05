@@ -106,7 +106,7 @@
     }
 
     /**
-     * 判断未经计算的操作数的类型，是不是 string,number,symbol,boolean
+     * 判断值的基本数据类型，是不是 string,number,symbol,boolean
      *  typeof 'a' === 'string'
      *  typeof 1 === 'number'
      *  typeof Symbol.for('react.element') === 'symbol'
@@ -154,7 +154,7 @@
     var _toString = Object.prototype.toString;
 
     /**
-     * 获取对象的类型。
+     * 获取对象的类型
      *
      *  toRawType({}) === 'Object'
      *  toRawType('a') === 'String'
@@ -172,14 +172,14 @@
     }
 
     /**
-     * 判断对象类型是否 [Object Object]。
+     * 判断对象的类型是否为 [Object Object]。
      */
     function isPlainObject(obj) {
         return _toString.call(obj) === '[object Object]'
     }
 
     /**
-     * 判断对象详细类型是否为正则。
+     * 判断对象的类型是否为正则。
      */
     function isRegExp(v) {
         return _toString.call(v) === '[object RegExp]'
@@ -225,7 +225,7 @@
      *  toString(null) // ''
      *  toString({}) // '{}'
      *  toString({a;1}) // '{a:1}' 格式化的string
-     *
+     *  toString(true) // 'true'
      */
     function toString(val) {
         return val == null
@@ -324,12 +324,14 @@
     }
 
     /**
-     * 创建纯函数的缓存版本。这是一个用于缓存函数执行结果的函数，可以有效避免多次重复无效的计算，适用于非复杂多变场景。
+     * 创建纯函数的缓存版本函数。这是一个用于缓存函数执行结果的函数，可以有效避免多次重复无效的计算，适用于非复杂多变场景。
      *      a = cached(function(a){
      *         console.log(a)
      *      })
      *      a('hello')  // 第一次执行时，cache对象没有缓存，需要先执行函数，在把结果缓存到 cache 对象中
      *      a('hello')  // 第二次执行时，根据传入的参数，命中缓存，直接返回结果。
+       
+        此函数可以在 `cachedFn(str)` 位置做扩展，可扩展为多个参数，用于处理不同的业务场景。
      */
     function cached(fn) {
         var cache = Object.create(null);
