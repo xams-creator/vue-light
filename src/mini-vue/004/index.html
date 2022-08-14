@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>当一个字段在多个地方被引用时，需要可以以发布-订阅模式通知到所有订阅者 </title>
+    <script src="index.js"></script>
+</head>
+<body>
+<div id="root">
+    <div>
+        <h1>hello {{text}}</h1>
+    </div>
+</div>
+<script>
+    app = new Vue({
+        el: "#root",
+        data: {
+            text: '法外狂徒张三',
+            foo: {
+                bar: {
+                    value: 999
+                }
+            }
+        },
+    })
+    // 问题1: 发现dep中的watcher实例没有去重，导致同一个字段的dep实例会添加多个一样的watcher实例
+</script>
+</body>
+</html>

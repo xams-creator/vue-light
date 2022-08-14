@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>实现一个Vue构造函数</title>
+    <script src="index.js"></script>
+</head>
+<body>
+<div id="root">
+    <div>
+        <h1>hello {{text}}</h1>
+    </div>
+</div>
+<script>
+    app = new Vue({
+        el: "#root",
+        data: {
+            text: '法外狂徒张三'
+        }
+    })
+</script>
+</body>
+</html>

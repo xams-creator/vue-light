@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>001</title>
+    <script src="index.js"></script>
+</head>
+<body>
+<button>测试weakMap</button>
+<script>
+    const buttonNode = document.querySelector("button");
+    let key = {
+        name: {
+            foo: 'bar'
+        },
+        age: 20
+    }
+    let wp = new Map();
+    wp.set(key.name, new Array(10 * 1024 * 1024));
+
+    buttonNode.addEventListener("click", () => {
+        key = null; // 发现Map无法回收，只有设置 wp = null ，才能被GC
+    })
+
+</script>
+
+</body>
+</html>

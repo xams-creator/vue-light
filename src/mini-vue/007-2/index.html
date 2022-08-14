@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>实现编译函数</title>
+    <script src="index.js"></script>
+</head>
+<body>
+<div id="root">
+    <div>
+        <h1>hello {{text}} {{text}}</h1>
+    </div>
+</div>
+<script>
+    app = new Vue({
+        el: "#root",
+        data: {
+            text: '法外狂徒张三',
+            foo: {
+                bar: {
+                    value: 999
+                }
+            }
+        },
+    })
+
+    setTimeout(() => {
+        app.text = '苟圣李长寿';
+    }, 3000)
+
+</script>
+</body>
+</html>

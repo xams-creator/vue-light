@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>拦截data的get,set函数，让我们可以监听对象值的变化</title>
+    <script src="index.js"></script>
+</head>
+<body>
+<div id="root">
+    <div>
+        <h1>hello {{text}}</h1>
+    </div>
+</div>
+<script>
+    app = new Vue({
+        el: "#root",
+        data: {
+            text: '法外狂徒张三',
+            foo: {
+                bar: {
+                    value: 999
+                }
+            }
+        }
+    })
+
+    // 问题1: 设置一个新值，app.$data.text = 1; 是否可以拦截到 set ?
+    // 可以
+
+    // 问题2: 设置一个新值, app.$data.foo.bar.value = 1; 是否可以拦截到 set ?
+    // 不可以
+
+</script>
+</body>
+</html>

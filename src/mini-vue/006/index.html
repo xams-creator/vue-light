@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>实现通过 app.text 简化访问数据</title>
+    <script src="index.js"></script>
+</head>
+<body>
+<div id="root">
+    <div>
+        <h1>hello {{text}}</h1>
+    </div>
+</div>
+<script>
+    app = new Vue({
+        el: "#root",
+        data: {
+            text: '法外狂徒张三',
+            foo: {
+                bar: {
+                    value: 999
+                }
+            }
+        },
+    })
+    app.$watch('text', (val, oldVal) => {
+        console.log('watcher1.......new: %s, old: %s', val, oldVal)
+    })
+    app.$watch('text', (val, oldVal) => {
+        console.log('watcher2.......new: %s, old: %s', val, oldVal)
+    })
+</script>
+</body>
+</html>
