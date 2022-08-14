@@ -8,13 +8,14 @@
 <body>
 <div id="root">
     <div>
-        <h1>hello {{text}} {{text}}</h1>
+        <h1 v-show="{{show}}">hello {{text}} {{text}}</h1>
     </div>
 </div>
 <script>
     app = new Vue({
         el: "#root",
         data: {
+            show: true,
             text: '法外狂徒张三',
             foo: {
                 bar: {

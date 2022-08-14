@@ -223,10 +223,11 @@ class Compiler {
     compile(el) {
         el.childNodes.forEach((node) => {
             switch (node.nodeType) {
-                case 3: // textNode
+                case Node.TEXT_NODE: // 文本节点： 3
                     this.compileTextNode(node)
                     break
-                case 1: // nodes
+                case Node.ELEMENT_NODE: // 元素节点： 1
+                    this.compileElement(node);
                     this.compile(node);
                     break;
                 default:
@@ -276,6 +277,28 @@ class Compiler {
 
     }
 
+
+    compileElement(node) {
+        const attributes = node.attributes;
+        Array.from(attributes).forEach((attribute) => {
+            let name = attribute.name
+            let value = attribute.value
+            switch (name) {
+                case 'v-show':
+                    if (isExpression(value)) {
+                        const key = value.replace(/^{{|}}$/g, '')    // 'show'
+                        attribute.value = this.vm[key]
+                        new Watcher(this.vm, key, (val) => {
+                            node.style.display = val === false ? 'none' : '';
+                        })
+                    }
+                    break
+                default:
+                    break
+
+            }
+        })
+    }
 
 }
 
